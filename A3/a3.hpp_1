@@ -52,7 +52,6 @@ void cpuGaussianKernel(int n, float *x, std::vector<float>& y, float h)
 
 }
 void gaussian_kde(int n, float h, const std::vector<float>& x, std::vector<float>& y, int mode) {
-	// float mean;
 	float *X, *Y;
 	// float *XK;
 	// Allocate Unified Memory – accessible from CPU or GPU
@@ -66,29 +65,25 @@ void gaussian_kde(int n, float h, const std::vector<float>& x, std::vector<float
 	}
 	// for(int i = 0; i<n; i++)
 	// 	std::cout << "Elements are "<<X[i]<<""<<std::endl;
-	if (mode==0)
-	{
-		std::cout << "=============GKDE using CPU=================="<<std::endl;
-		cpuGaussianKernel(n, X, y, h);
-	}
+	std::cout << "=============GKDE using CPU=================="<<std::endl;
+	cpuGaussianKernel(n, X, y, h);
 	// for(int i = 0; i<n; i++)
 	// 	std::cout << "Elements are "<<y[i]<<""<<std::endl;
-	if (mode==1)
-	{
-		std::cout << "=============GKDE using GPU=================="<<std::endl;
-		gpuGaussianKernel<<<1, 256>>>(n, X, Y, h);
-		cudaDeviceSynchronize();
-		// for(int i = 0; i<n; i++)
-		// 	std::cout << "Elements are "<<Y[i]<<""<<std::endl;
-		// Check for errors (all GPU calculated values should be equal to CPU calculated values)
-		// float maxError = 0.0f;
-		// for (int i = 0; i < n; i++)
-		// 	maxError = fmax(maxError, fabs(Y[i]-y[i]));
-		// std::cout << "Max error: " << maxError << std::endl;
-		// Free memory
-		cudaFree(X);
-		cudaFree(Y);
-	}
+	std::cout << "=============GKDE using GPU=================="<<std::endl;
+	int blockSize = 256;
+	int numBlocks = (N + blockSize - 1) / blockSize;
+	gpuGaussianKernel<<<numBlocks, blockSize>>>(n, X, Y, h);
+	cudaDeviceSynchronize();
+	// for(int i = 0; i<n; i++)
+	// 	std::cout << "Elements are "<<Y[i]<<""<<std::endl;
+	// Check for errors (all GPU calculated values should be equal to CPU calculated values)
+	float maxError = 0.0f;
+	for (int i = 0; i < n; i++)
+		maxError = fmax(maxError, fabs(Y[i]-y[i]));
+	std::cout << "Max error: " << maxError << std::endl;
+	// Free memory
+	cudaFree(X);
+	cudaFree(Y);
 	
 	
 

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <algorithm>//had to add
+#include <functional>//had to add
 
 #include "a3.hpp"
 
@@ -15,7 +17,7 @@ int main(int argc, char* argv[]) {
     int n = std::atoi(argv[1]);
     float h = std::atof(argv[2]);
 
-    if (n < 32) {
+    if (n < 4) {
         std::cout << "hey, n is too small even for debugging!" << std::endl;
         return -1;
     }
@@ -37,7 +39,7 @@ int main(int argc, char* argv[]) {
     // now running your awesome code from a3.hpp
     auto t0 = std::chrono::system_clock::now();
 
-    gaussian_kde(n, h, x, y);
+    gaussian_kde(n, h, x, y, 0);
 
     auto t1 = std::chrono::system_clock::now();
 
