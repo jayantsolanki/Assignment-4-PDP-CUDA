@@ -1,3 +1,8 @@
+/*
+* I changed the extension of this file to .cpp to .cu
+* I added to more libreary functions, std keyword was not being recongnised
+*
+*/
 #include <chrono>
 #include <iostream>
 #include <random>
@@ -17,7 +22,7 @@ int main(int argc, char* argv[]) {
     int n = std::atoi(argv[1]);
     float h = std::atof(argv[2]);
 
-    if (n < 4) {
+    if (n < 32) {
         std::cout << "hey, n is too small even for debugging!" << std::endl;
         return -1;
     }
@@ -39,7 +44,7 @@ int main(int argc, char* argv[]) {
     // now running your awesome code from a3.hpp
     auto t0 = std::chrono::system_clock::now();
 
-    gaussian_kde(n, h, x, y, 0);
+    gaussian_kde(n, h, x, y);
 
     auto t1 = std::chrono::system_clock::now();
 
