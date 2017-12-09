@@ -5,7 +5,7 @@
 
 /*
 * Referred from Mark Harris Blog: https://devblogs.nvidia.com/parallelforall/even-easier-introduction-cuda/
-*
+* Some stats: https://goo.gl/zQLXWN
 *
 */
 #include <iostream>
@@ -39,7 +39,7 @@ __global__ void gpuGaussianKernel(int n, float *x, float *y, float h)
   	
 }
 
-void cpuGaussianKernel(int n, float *x, std::vector<float>& y, float h)
+void cpuGaussianKernel(int n, float *x, std::vector<float>& y, float h)//calculating GKDE using hot device only
 {
 	for(int i = 0; i<n; i++)
 	{
@@ -56,30 +56,36 @@ void cpuGaussianKernel(int n, float *x, std::vector<float>& y, float h)
 
 }
 void gaussian_kde(int n, float h, const std::vector<float>& x, std::vector<float>& y) {
-	float *X, *Y;
+	// const float *X = &x[0];
 	// float *XK;
-	// Allocate Unified Memory – accessible from CPU or GPU
+	float *X, *Y;
+	// Allocate Unified Memory – accessible from CPU or GPU;
 	cudaMallocManaged(&X, n*sizeof(float));
 	cudaMallocManaged(&Y, n*sizeof(float));
 	// cudaMallocManaged(&XK, n*sizeof(float));
 	// initialize x and y arrays on the host
-	for (int i = 0; i < n; i++) {//abusing the vector
+	for (int i = 0; i < n; i++) {//abusing the vector as I couldnt debug the error related to const and vector
 		X[i] = x[i];
 		// Y[i] = y[i];
 	}
 	// for(int i = 0; i<n; i++)
-	// 	std::cout << "Elements are "<<X[i]<<""<<std::endl;
-	std::cout << "=============GKDE using CPU=================="<<std::endl;
+	// 	std::cout << "Elements of x are "<<x[i]<<""<<std::endl;
+	// std::cout << "=============GKDE using CPU=================="<<std::endl;
 	// cpuGaussianKernel(n, X, y, h);
 	// for(int i = 0; i<n; i++)
-	// 	std::cout << "Elements are "<<y[i]<<""<<std::endl;
+	// 	std::cout << "Elements of y are "<<y[i]<<""<<std::endl;
 	std::cout << "=============GKDE using GPU=================="<<std::endl;
 	int blockSize = 256;//didnt take 512 or 1024
 	int numBlocks = (n + blockSize - 1) / blockSize;
-	gpuGaussianKernel<<<numBlocks, blockSize>>>(n, X, Y, h);
+	gpuGaussianKernel<<<numBlocks, blockSize>>>(n, X, Y, h);//vector was not getting identified so I had to resort to this hack
 	cudaDeviceSynchronize();
+	for (int i = 0; i < n; i++) {//abusing the vector as I couldnt debug the error related to const and vector
+		y[i] = Y[i];
+		// Y[i] = y[i];
+	}
+	// *y = &Y[0];
 	// for(int i = 0; i<n; i++)
-	// 	std::cout << "Elements are "<<Y[i]<<""<<std::endl;
+	// 	std::cout << "Elements of y are "<<y[i]<<""<<std::endl;
 	// // Check for errors (all GPU calculated values should be equal to CPU calculated values)
 	// float maxError = 0.0f;
 	// for (int i = 0; i < n; i++)
